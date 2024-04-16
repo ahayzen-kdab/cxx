@@ -282,8 +282,8 @@ fn parse_rust_name_attribute(meta: &Meta) -> Result<Ident> {
     Err(Error::new_spanned(meta, "unsupported rust_name attribute"))
 }
 
-#[derive(Clone)]
-pub(crate) struct OtherAttrs(Vec<Attribute>);
+#[derive(Clone, Debug)]
+pub(crate) struct OtherAttrs(pub(crate) Vec<Attribute>);
 
 impl OtherAttrs {
     pub(crate) fn none() -> Self {

@@ -142,7 +142,11 @@ impl<'a> Types<'a> {
                 Api::CxxFunction(efn) | Api::RustFunction(efn) => {
                     // Note: duplication of the C++ name is fine because C++ has
                     // function overloading.
-                    if !function_names.insert((&efn.receiver, &efn.name.rust)) {
+                    if !matches!(efn.cfg, crate::syntax::CfgExpr::Unconditional) {
+                        println!("FUNCTION: cfg -> {:?}", efn.cfg);
+                        // println!("FUNCTION: attrs -> {:?}", efn.attrs);
+                    }
+                    if !function_names.insert((&efn.receiver, &efn.name.rust, &efn.cfg)) {
                         duplicate_name(cx, efn, &efn.name.rust);
                     }
                     for arg in &efn.args {

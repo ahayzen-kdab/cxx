@@ -3,7 +3,7 @@ use std::mem;
 use syn::parse::{Error, ParseStream, Result};
 use syn::{parenthesized, token, Attribute, LitStr, Token};
 
-#[derive(Clone)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash)]
 pub(crate) enum CfgExpr {
     Unconditional,
     #[allow(dead_code)] // only used by cxx-build, not cxxbridge-macro
