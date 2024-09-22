@@ -146,6 +146,8 @@ impl<'a> Types<'a> {
                         println!("FUNCTION: cfg -> {:?}", efn.cfg);
                         // println!("FUNCTION: attrs -> {:?}", efn.attrs);
                     }
+                    // TODO: instead use the cfg_evalator to try and find out
+                    // if the cfg result is true/false/undetermind?
                     if !function_names.insert((&efn.receiver, &efn.name.rust, &efn.cfg)) {
                         duplicate_name(cx, efn, &efn.name.rust);
                     }
@@ -158,7 +160,7 @@ impl<'a> Types<'a> {
                 }
                 Api::TypeAlias(alias) => {
                     let ident = &alias.name.rust;
-                    if !type_names.insert(ident) {
+                    if !type_names.insert((ident, &efn.cfg)) {
                         duplicate_name(cx, alias, ident);
                     }
                     cxx.insert(ident);
