@@ -1,3 +1,4 @@
+use crate::syntax::cfg::CfgExpr;
 use crate::syntax::improper::ImproperCtype;
 use crate::syntax::instantiate::ImplKey;
 use crate::syntax::map::{OrderedMap, UnorderedMap};
@@ -71,10 +72,13 @@ impl<'a> Types<'a> {
                 Api::Include(_) => {}
                 Api::Struct(strct) => {
                     let ident = &strct.name.rust;
+                    // Allow duplicates when using a cfg attribute as we
+                    // cannot eval here to find the CfgResult
                     if !type_names.insert(ident)
                         && (!cxx.contains(ident)
                             || structs.contains_key(ident)
                             || enums.contains_key(ident))
+                        && matches!(strct.cfg, CfgExpr::Unconditional)
                     {
                         // If already declared as a struct or enum, or if
                         // colliding with something other than an extern C++
@@ -96,10 +100,13 @@ impl<'a> Types<'a> {
                         EnumRepr::Foreign { rust_type: _ } => {}
                     }
                     let ident = &enm.name.rust;
+                    // Allow duplicates when using a cfg attribute as we
+                    // cannot eval here to find the CfgResult
                     if !type_names.insert(ident)
                         && (!cxx.contains(ident)
                             || structs.contains_key(ident)
                             || enums.contains_key(ident))
+                        && matches!(enm.cfg, CfgExpr::Unconditional)
                     {
                         // If already declared as a struct or enum, or if
                         // colliding with something other than an extern C++
@@ -116,9 +123,12 @@ impl<'a> Types<'a> {
                 }
                 Api::CxxType(ety) => {
                     let ident = &ety.name.rust;
+                    // Allow duplicates when using a cfg attribute as we
+                    // cannot eval here to find the CfgResult
                     if !type_names.insert(ident)
                         && (cxx.contains(ident)
                             || !structs.contains_key(ident) && !enums.contains_key(ident))
+                        && matches!(ety.cfg, CfgExpr::Unconditional)
                     {
                         // If already declared as an extern C++ type, or if
                         // colliding with something which is neither struct nor
@@ -133,7 +143,9 @@ impl<'a> Types<'a> {
                 }
                 Api::RustType(ety) => {
                     let ident = &ety.name.rust;
-                    if !type_names.insert(ident) {
+                    // Allow duplicates when using a cfg attribute as we
+                    // cannot eval here to find the CfgResult
+                    if !type_names.insert(ident) && matches!(ety.cfg, CfgExpr::Unconditional) {
                         duplicate_name(cx, ety, ident);
                     }
                     rust.insert(ident);
@@ -142,7 +154,12 @@ impl<'a> Types<'a> {
                 Api::CxxFunction(efn) | Api::RustFunction(efn) => {
                     // Note: duplication of the C++ name is fine because C++ has
                     // function overloading.
-                    if !function_names.insert((&efn.receiver, &efn.name.rust)) {
+                    //
+                    // Allow duplicates when using a cfg attribute as we
+                    // cannot eval here to find the CfgResult
+                    if !function_names.insert((&efn.receiver, &efn.name.rust))
+                        && matches!(efn.cfg, CfgExpr::Unconditional)
+                    {
                         duplicate_name(cx, efn, &efn.name.rust);
                     }
                     for arg in &efn.args {
@@ -154,7 +171,9 @@ impl<'a> Types<'a> {
                 }
                 Api::TypeAlias(alias) => {
                     let ident = &alias.name.rust;
-                    if !type_names.insert(ident) {
+                    // Allow duplicates when using a cfg attribute as we
+                    // cannot eval here to find the CfgResult
+                    if !type_names.insert(ident) && matches!(alias.cfg, CfgExpr::Unconditional) {
                         duplicate_name(cx, alias, ident);
                     }
                     cxx.insert(ident);
